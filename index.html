@@ -1,0 +1,252 @@
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252">
+<title>WebGL 2D Texture and Transformation</title>
+
+<script src="AffineTransform2D.js"></script>
+<script src="scene.js"></script>
+<script src="objects.js"></script>
+
+<script type="text/javascript">
+
+"use strict";  // Enforce stricter syntax rules, if that feature is available.
+
+//---- Shader source strings, for a shader program that assumes all primitive are textured
+ // Source code for a simple vertex shader, to be passed to createProgram().
+var vertexShaderSource =
+     "precision highp float;\n" +
+     "attribute vec2 vertexCoords;\n" +
+     "attribute vec2 textureCoords;\n" +
+     "varying vec2 texcoords;\n" +
+     "uniform mat3 coordinateTransform;\n" +
+
+     //will be using vec4 colors for gradients
+     "attribute vec4 vertexColor;\n" +
+     "varying vec4 color;\n" +
+     "void main() {\n" +
+     "   vec3 transformedCoords = coordinateTransform * vec3(vertexCoords, 1.0);\n" +
+     "   gl_Position = vec4(transformedCoords.xy, 0.0, 1.0);\n" +
+     "   texcoords = textureCoords;\n" +
+     "   color = vertexColor;\n" +
+     "}\n";
+ // Source code for a simple fragment shader, to be passed to createProgram().
+var fragmentShaderSource =
+     "precision mediump float;\n" +
+     "varying vec2 texcoords;\n" +
+     "uniform sampler2D texture;\n" +
+     //will be using vec4 colors for gradients
+     "varying vec4 color;\n"+
+     "void main() {\n" +
+     "    gl_FragColor = color;\n" +
+     "}\n";
+
+
+var gl;   // The webgl context.
+
+var transform = new AffineTransform2D();
+var transformStack = [];
+
+/**
+ *  Push a copy of the current transform onto the transform stack.
+ */
+function pushTransform() {
+    transformStack.push( new AffineTransform2D(transform) );
+}
+
+/**
+ *  Remove the top item from the transform stack, and set it to be the current
+ *  transform.  If the stack is empty, nothing is done (and no error is generated).
+ */
+function popTransform() {
+    if (transformStack.length > 0) {
+        transform = transformStack.pop();
+    }
+}
+
+
+
+
+function draw() {
+
+   gl.clearColor(0, 0, 0, 1);
+   gl.clear(gl.COLOR_BUFFER_BIT); // Clear canvas
+
+   console.log("here");
+   drawScene();
+}
+
+var prog; // webGL program.
+var vertexAttributeBuffer;   //  databuffer where vertex coords are stored.
+var vertexAttributeLocation; // vertex attribute variable in the shader program.
+var transformUniformLocation;      // coordinate matrix uniform variable in the shader program.
+var texcoordsAttributeBuffer;      // databuffer where texture coords are stored.
+var textureCoordAttributeLocation; // texture coordinate attribute in the shader program.
+var textureUniformLocation;        // texture image uniform in the shader program.
+var colorAttributeLocation;
+var colorAttributeBuffer;
+
+var squareCoordsVBO;
+var diskCoordsVBO;
+var triangleCoordsVBO;
+
+/**
+ * Creates a program for use in the WebGL context gl, and returns the
+ * identifier for that program.  If an error occurs while compiling or
+ * linking the program, an exception of type String is thrown.  The
+ * string contains the compilation or linking error.  If no error occurs,
+ * the program identifier is the return value of the function.
+ */
+function createProgram(gl, vertexShaderSource, fragmentShaderSource) {
+   var vsh = gl.createShader( gl.VERTEX_SHADER );
+   gl.shaderSource(vsh,vertexShaderSource);
+   gl.compileShader(vsh);
+   if ( ! gl.getShaderParameter(vsh, gl.COMPILE_STATUS) ) {
+      throw "Error in vertex shader:  " + gl.getShaderInfoLog(vsh);
+   }
+   var fsh = gl.createShader( gl.FRAGMENT_SHADER );
+   gl.shaderSource(fsh, fragmentShaderSource);
+   gl.compileShader(fsh);
+   if ( ! gl.getShaderParameter(fsh, gl.COMPILE_STATUS) ) {
+      throw "Error in fragment shader:  " + gl.getShaderInfoLog(fsh);
+   }
+   var prog = gl.createProgram();
+   gl.attachShader(prog,vsh);
+   gl.attachShader(prog, fsh);
+   gl.linkProgram(prog);
+   if ( ! gl.getProgramParameter( prog, gl.LINK_STATUS) ) {
+      throw "Link error in program:  " + gl.getProgramInfoLog(prog);
+   }
+   return prog;
+}
+
+/**
+ * Create a WebGL drawing context for a canvas element.  The parameter can
+ * be either a string that is the id of a canvas element, or it can be the
+ * canvas element itself.  If no drawing context can be created, an exception
+ * of type string is thrown.
+ */
+function createWebGLContext(canvas) {
+   var c;
+   if ( ! canvas )
+      throw "Canvas required";
+   if (typeof canvas == "string")
+      c = document.getElementById(canvas);
+   else
+      c = canvas;
+   if ( ! c.getContext )
+      throw "No legal canvas provided";
+   var gl = c.getContext("webgl");
+   if ( ! gl ) {
+      gl = c.getContext("experimental-webgl");
+   }
+   if ( ! gl )
+      throw "Can't create WebGLContext";
+   return gl;
+}
+
+/**
+ * A convenient function, for use during debugging, which checks whether a
+ * GL error has occured in the drawing context, gl.  The method returns null
+ * if no error has occurred, and retuns a string that describes the error if
+ * one has occurred.  (The string is a littl more useful than the native GL
+ * error code.)  Note that once an error occurs, GL retains that error until
+ * this function is called, so you can't assume that the error occurred in
+ * the line that precedes the call to this function.
+ */
+
+function checkGLError() {
+      var e = gl.getError();
+      if ( e == gl.NO_ERROR )
+         return null;
+      else if ( e == gl.INVALID_ENUM )
+         return "Invalid constant";
+      else if ( e == gl.INVALID_VALUE )
+         return "Numeric argument out of range.";
+      else if ( e == gl.INVALID_OPERATION )
+         return "Invalid operation for current state.";
+      else if ( e == gl.OUT_OF_MEMORY )
+         return "Out of memory!!";
+      else
+         return "??? Unknown error ???";
+}
+
+
+var circleColorVBO;
+var rainbow = [];
+var squareColorVBO;
+
+//--------------------------- initialization -------------------------------------------
+
+/**
+ * Initializes the WebGL program including the relevant global variables and the WebGL state,
+ * and calls draw() for the first time.
+ * This function is called when the texture image has been loaded, so that textures are
+ * available by the time they are drawn on the canvas.
+ */
+function initGL() {
+
+   try {
+       gl = createWebGLContext("glcanvas");
+       prog = createProgram(gl,vertexShaderSource,fragmentShaderSource);
+       gl.useProgram(prog);
+       vertexAttributeLocation       =  gl.getAttribLocation(prog, "vertexCoords");
+       gl.enableVertexAttribArray(vertexAttributeLocation);
+       transformUniformLocation      =  gl.getUniformLocation(prog, "coordinateTransform");
+       colorAttributeLocation        =  gl.getAttribLocation(prog, "vertexColor");
+       gl.enableVertexAttribArray(colorAttributeLocation);
+
+       vertexAttributeBuffer = gl.createBuffer();
+       colorAttributeBuffer = gl.createBuffer();
+       gl.blendFuncSeparate( gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA,
+                                 gl.ZERO, gl.ONE ); // Set blend function to enable alpha blending.
+
+       gl.enable(gl.BLEND);
+       var triangleCoords = new Float32Array([
+           0.0, 1.0,
+           0.0, 0.0,
+           1.0, 0.0
+       ]);
+
+       diskCoordsVBO = gl.createBuffer();
+       gl.bindBuffer(gl.ARRAY_BUFFER, diskCoordsVBO);
+       var circleCoords = new Float32Array( 64 );
+       for (var i = 0; i < 32; i++) {
+           var angle = (2*Math.PI)/32 * i;
+           circleCoords[2*i] = 0.5 * Math.cos(angle);
+           circleCoords[2*i+1] = 0.5 * Math.sin(angle);
+       }
+       gl.bufferData(gl.ARRAY_BUFFER, circleCoords, gl.STATIC_DRAW);
+
+       circleColorVBO = gl.createBuffer();
+       gl.bindBuffer(gl.ARRAY_BUFFER, circleColorVBO);
+       gl.bufferData(gl.ARRAY_BUFFER, rainbow, gl.STATIC_DRAW);
+
+
+       squareCoordsVBO = gl.createBuffer();
+       gl.bindBuffer(gl.ARRAY_BUFFER, squareCoordsVBO);
+       var squareCoords = new Float32Array( [ -0.5,-0.5, 0.5,-0.5, 0.5,0.5, -0.5,0.5 ] );
+       gl.bufferData(gl.ARRAY_BUFFER, squareCoords, gl.STATIC_DRAW);
+
+   }
+   catch (e) {
+      document.getElementById("message").innerHTML = "Could not initialize WebGL! Error:" + e;
+      return;
+   }
+   draw();
+}
+
+
+</script>
+</head>
+
+
+<body onload="initGL()" style="background-color:#DDD">
+
+
+<noscript><hr><h3>This page requires Javascript and a web browser that supports WebGL</h3><hr></noscript>
+
+
+<canvas width="800" height="800" id="glcanvas" style="background-color:black"></canvas>
+
+<p id="message"></p>
+
+</body></html>
