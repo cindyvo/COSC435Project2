@@ -127,7 +127,15 @@ function drawScene() {
           var p1 = polarToCart([0.6*0.45, 145]);
           var p2 = polarToCart([0.6*0.45, 105]);
           curvedStripes([startPoint[X]-0.35, startPoint[Y]-0.40], [endPoint[X]-0.35, endPoint[Y]-0.40],
-                        [[p1[X]-0.35, p1[Y]-0.40], [p2[X]-0.35, p2[Y]-0.40]], [1,1,0.8,1], 1);
+                        [[p1[X]-0.35, p1[Y]-0.40], [p2[X]-0.35, p2[Y]-0.40]], [1,1,0.8,1], 1, true);
+
+          //start and endpoints are the same, but the curve changes to be shallow,
+          //hence p1 and p2 have a shorter radius
+          //also this is the GREEN PIECE THAT I"M PUTTING OVER THE WHITE ONE
+          p1 = polarToCart([0.47*0.45, 145]);
+          p2 = polarToCart([0.5*0.45, 100]);
+          curvedStripes([startPoint[X]-0.35, startPoint[Y]-0.40], [endPoint[X]-0.35, endPoint[Y]-0.40],
+                        [[p1[X]-0.35, p1[Y]-0.40], [p2[X]-0.35, p2[Y]-0.40]], [32.0/255.0,65.0/255.0,43.0/255.0,1], 1, false);
         popTransform();
 
     popTransform();

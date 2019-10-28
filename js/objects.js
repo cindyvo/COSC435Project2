@@ -92,7 +92,7 @@ function filledShape(vertexArr, color, drawMode) {
     gl.drawArrays(eval(drawMode), 0, vertexArr.length/2);
 }
 
-function curvedStripes(startPt, endPt, curvePts, color, scale) {
+function curvedStripes(startPt, endPt, curvePts, color, scale, drawGuide) {
   console.log("CURVED STRIPES" +color);
   var control_polygon = [0, 0,  // center for drawing needed from triangle fan
                                   // try other number 200 instead of 300 to get it
@@ -107,8 +107,11 @@ function curvedStripes(startPt, endPt, curvePts, color, scale) {
   pushTransform();
     transform.scale(scale);
     filledShape(curve_pts, color);
-    //draw the red grid to help guide, omit the 0,0
-    linedShape(control_polygon.slice(2,control_polygon.length), [1,0,0,1], "gl.LINE_LOOP");
+    if(drawGuide){
+      //draw the red grid to help guide, omit the 0,0
+      linedShape(control_polygon.slice(2,control_polygon.length), [1,0,0,1], "gl.LINE_LOOP");
+    }
+
   popTransform();
 
 }
