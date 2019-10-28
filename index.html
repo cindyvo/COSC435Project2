@@ -2,9 +2,10 @@
 <meta http-equiv="content-type" content="text/html; charset=windows-1252">
 <title>WebGL 2D Texture and Transformation</title>
 
-<script src="AffineTransform2D.js"></script>
-<script src="scene.js"></script>
-<script src="objects.js"></script>
+<script src="js/AffineTransform2D.js"></script>
+<script src="js/scene.js"></script>
+<script src="js/objects.js"></script>
+<script src="js/curve_utils.js"></script>
 
 <script type="text/javascript">
 
@@ -205,16 +206,6 @@ function initGL() {
            0.0, 0.0,
            1.0, 0.0
        ]);
-
-       diskCoordsVBO = gl.createBuffer();
-       gl.bindBuffer(gl.ARRAY_BUFFER, diskCoordsVBO);
-       var circleCoords = new Float32Array( 64 );
-       for (var i = 0; i < 32; i++) {
-           var angle = (2*Math.PI)/32 * i;
-           circleCoords[2*i] = 0.5 * Math.cos(angle);
-           circleCoords[2*i+1] = 0.5 * Math.sin(angle);
-       }
-       gl.bufferData(gl.ARRAY_BUFFER, circleCoords, gl.STATIC_DRAW);
 
        circleColorVBO = gl.createBuffer();
        gl.bindBuffer(gl.ARRAY_BUFFER, circleColorVBO);
