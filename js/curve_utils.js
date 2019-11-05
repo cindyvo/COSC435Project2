@@ -1,9 +1,20 @@
+/**
+* Summary of the file: The code is based on
+* https://webglfundamentals.org/webgl/lessons/webgl-3d-geometry-lathe.html
+* This file is used to help determine the coordinates of the Bezier curves.
+*/
+
+//constant variables used for better readability
 const X = 0;
 const Y = 1;
 
-
-//This code is based on
-//https://webglfundamentals.org/webgl/lessons/webgl-3d-geometry-lathe.html
+/**
+* Description. Determines a point on a bezier curve
+*
+* @param {array} points an array of coordinates
+* @param {number} offset how much to offset the points
+* @param {number} t a number used to add or subtract in this formula
+*/
 
 function getPointOnBezierCurve(points, offset, t) {
 
@@ -11,9 +22,6 @@ function getPointOnBezierCurve(points, offset, t) {
    var invT2 = invT * invT;
    var invT3 = invT * invT * invT;
 
-   //console.log("inv", invT, points);
-
-   // x part (x0,y0, x1,y1, x2,y2, x3,y3)
    var p_x =  points[offset]   * invT3 +
           3 * points[offset+2] * invT2 * t +
           3 * points[offset+4] * invT  * t * t +
@@ -27,15 +35,16 @@ function getPointOnBezierCurve(points, offset, t) {
    return [p_x, p_y];
 }
 
-
-// Need an header:
-//
-//4 control points
+/**
+* Description. Returns an array of coordinates defined on a bezier curve
+*
+* @param {array} points an array of coordinates
+* @param {number} offset how much to offset the points
+* @param {number} numPoints desired number of points
+*/
 function getPointsOnBezierCurve(points, offset, numPoints) {
 
    var curve_pts = [];
-
-   //curve_pts.push(points[X], points[Y]);
 
    for (var i = 0; i < numPoints; ++i) {
       var t = i / (numPoints - 1);

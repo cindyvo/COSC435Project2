@@ -1,10 +1,16 @@
 /**
- *  Create a 2D affine transform object representing the transform from (x,y)
+ *  Description. Create a 2D affine transform object representing the transform from (x,y)
  *  to ( a*x + c*y + e, b*x + d*y + e ).  If exactly one parameter is passed
  *  and it is of type AffineTransform2D, then a copy is made of the paramter.
  *  Otherwise, parameters should be numeric.  Missing parameter values are
  *  taken from the identity transform.  If no parameters are passed, the
  *  result is the identity transform.
+ * @param {number} a
+ * @param {number} b
+ * @param {number} c
+ * @param {number} d
+ * @param {number} e
+ * @param {number} f
  */
 function AffineTransform2D(a, b, c, d, e, f) {
     if (arguments.length == 1 && (a instanceof AffineTransform2D)){
@@ -26,7 +32,7 @@ function AffineTransform2D(a, b, c, d, e, f) {
 }
 
 /**
- *  Returns an array of 9 numbers representing this transform as a 3-by-3 matrix,
+ *  Description. Returns an array of 9 numbers representing this transform as a 3-by-3 matrix,
  *  in column-major order.
  */
 AffineTransform2D.prototype.getMat3 = function() {
@@ -38,8 +44,9 @@ AffineTransform2D.prototype.getMat3 = function() {
 }
 
 /**
- * Multiply this transform on the right by a rotation transform.  Angle is given in radians.
+ * Description. Multiply this transform on the right by a rotation transform.  Angle is given in radians.
  * Replaces this transform with the modified transform, and returns the modified transform.
+ * @params {number} radians
  */
 AffineTransform2D.prototype.rotate = function(radians) {
     var sin = Math.sin(radians);
@@ -54,8 +61,11 @@ AffineTransform2D.prototype.rotate = function(radians) {
 }
 
 /**
- * Multiply this transform on the right by a translation transform.
+ * Description. Multiply this transform on the right by a translation transform.
  * Replaces this transform with the modified transform, and returns the modified transform.
+ *
+ * @param {number} dx Amount to offset the x.
+ * @param {number} dy Amount to offset the y.
  */
 AffineTransform2D.prototype.translate = function(dx, dy) {
     this.e += this.a*dx + this.c*dy;
@@ -64,9 +74,12 @@ AffineTransform2D.prototype.translate = function(dx, dy) {
 }
 
 /**
- * Multiply this transform on the right by a scaling transform. If only one parameter is
+ * Description. Multiply this transform on the right by a scaling transform. If only one parameter is
  * passed, does a uniform scaling.
  * Replaces this transform with the modified transform, and returns the modified transform.
+ *
+ * @param {number} sx Amount to scale the x
+ * @param {number} sy Amount to scale the y
  */
 AffineTransform2D.prototype.scale = function(sx,sy) {
     if (sy === undefined) {
@@ -79,7 +92,11 @@ AffineTransform2D.prototype.scale = function(sx,sy) {
     return this;
 }
 
-//shifts the x value by a certain factor
+/**
+* Description. Function shifts the x value by a certain factor
+*
+* @param {number} shear Amount to shift the x
+*/
 AffineTransform2D.prototype.xshear = function( /* Number */ shear) {
    this.a += this.a*shear;
    return this;

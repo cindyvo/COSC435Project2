@@ -6,12 +6,12 @@
 <script src="js/scene.js"></script>
 <script src="js/objects.js"></script>
 <script src="js/curve_utils.js"></script>
+<script src="js/shadings.js"></script>
 
 <script type="text/javascript">
 
-"use strict";  // Enforce stricter syntax rules, if that feature is available.
+"use strict";
 
-//---- Shader source strings, for a shader program that assumes all primitive are textured
  // Source code for a simple vertex shader, to be passed to createProgram().
 var vertexShaderSource =
      "precision highp float;\n" +
@@ -29,6 +29,7 @@ var vertexShaderSource =
      "   texcoords = textureCoords;\n" +
      "   color = vertexColor;\n" +
      "}\n";
+
  // Source code for a simple fragment shader, to be passed to createProgram().
 var fragmentShaderSource =
      "precision mediump float;\n" +
@@ -64,14 +65,12 @@ function popTransform() {
 }
 
 
-
-
 function draw() {
 
    gl.clearColor(0, 0, 0, 1);
    gl.clear(gl.COLOR_BUFFER_BIT); // Clear canvas
 
-   console.log("here");
+
    drawScene();
 }
 
@@ -171,6 +170,7 @@ function checkGLError() {
 }
 
 
+//global variables for the buffers
 var circleColorVBO;
 var rainbow = [];
 var squareColorVBO;
@@ -222,6 +222,10 @@ function initGL() {
       document.getElementById("message").innerHTML = "Could not initialize WebGL! Error:" + e;
       return;
    }
+
+   document.getElementById("randomCheckBox").checked = false;
+   document.getElementById("randomCheckBox").onchange = doRandomCheckbox;
+
    draw();
 }
 
@@ -229,8 +233,10 @@ function initGL() {
 </script>
 </head>
 
-
 <body onload="initGL()" style="background-color:#DDD">
+  <h2>Cindy's Project 2: Balls (2006) By Chen Wenbo</h2>
+  <h2><label><input type="checkbox" id="randomCheckBox"><b>Randomize Lighting Circles!</b></label></h2>
+
 
 
 <noscript><hr><h3>This page requires Javascript and a web browser that supports WebGL</h3><hr></noscript>
