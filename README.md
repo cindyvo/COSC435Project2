@@ -14,9 +14,9 @@ Some things that I could improve on is the coloring of the balls to make it more
 
 Some of this code were inspired by previous code that we have been exposed to. The curve_utils code given to us in lab by Professor Fourquet was pivotal in creating these stripes and numbers. The AffineTransform2D.js code from previous labs also helped us a lot with the implementation of the transformations. The shading code that was inspired by Leo's presentation also helped with imitating the lighting in this picture. Also I was inspired by Allegra's color palette code and used that in my code base because I feel that it is an effective abstraction of using colors.
 
-Screenshot of original picture:
+**Screenshot of original picture:**
 ![Original](/images/Balls_ChenWenbo_Original_Pic.PNG)
 
 
-Screenshot of painterly rendering:
+**Screenshot of painterly rendering:**
 ![Image](/images/Canvas_Rendering_1.PNG)
